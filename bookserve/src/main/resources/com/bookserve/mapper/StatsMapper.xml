@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookserve.mapper.StatsMapper">
+    <!-- 分类统计（包含空分类） -->
+    <select id="getCategoryStats" resultType="java.util.LinkedHashMap">
+        SELECT
+            c.name AS categoryName,
+            COUNT(b.id) AS bookCount
+        FROM category c
+                 LEFT JOIN book b ON c.id = b.category_id
+        GROUP BY c.id
+        ORDER BY bookCount DESC
+    </select>
+
+    <!-- 其他统计 SQL（注意 `order` 是 MySQL 关键字，需用反引号包裹） -->
+    <select id="getTotalOrders" resultType="java.lang.Long">
+        SELECT COUNT(id) FROM orders
+    </select>
+
+    <select id="getTodayOrders" resultType="java.lang.Long">
+        SELECT COUNT(id) FROM orders
+        WHERE DATE(create_time) = CURDATE()  -- CURDATE() 获取当前日期
+    </select>
+
+    <select id="getTotalUsers" resultType="java.lang.Long">
+        SELECT COUNT(id) FROM user
+    </select>
+
+    <select id="getTodayUsers" resultType="java.lang.Long">
+        SELECT COUNT(id) FROM user
+        WHERE DATE(create_time) = CURDATE()
+    </select>
+
+
+    <!-- StatsMapper.xml -->
+    <select id="getTotalBooks" resultType="java.lang.Long">
+        SELECT COUNT(id) FROM book
+    </select>
+
+    <select id="getTodayBooks" resultType="java.lang.Long">
+        SELECT COUNT(id) FROM book
+        WHERE DATE(create_time) = CURDATE()
+    </select>
+
+    <select id="getTotalStock" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(stock), 0) FROM book
+    </select>
+
+    <select id="getTodayAddedStock" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(stock), 0) FROM book
+        WHERE DATE(create_time) = CURDATE()
+    </select>
+
+    <select id="getYesterdayDecreasedStock" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(change_amount), 0)
+        FROM inventory_log
+        WHERE log_type = 'OUTBOUND'
+          AND DATE(create_time) = CURDATE() - INTERVAL 1 DAY
+    </select>
+</mapper>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookserve.mapper.OrderItemMapper">
+    <!-- 单条插入（允许空字段） -->
+    <insert id="insert">
+        INSERT INTO order_item (
+            order_id,
+            book_id,
+            price,
+            quantity,
+            create_time,
+            update_time
+        )
+        VALUES (
+                   #{orderId},
+                   #{bookId},
+                   #{price},
+                   #{quantity},
+                   #{createTime},
+                   #{updateTime}
+               )
+    </insert>
+
+    <!-- 批量插入（允许空字段） -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO order_item (
+        order_id,
+        book_id,
+        price,
+        quantity,
+        create_time,
+        update_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.orderId,jdbcType=BIGINT},
+            #{item.bookId,jdbcType=BIGINT},
+            #{item.price,jdbcType=DECIMAL},
+            #{item.quantity,jdbcType=INTEGER},
+            #{item.createTime,jdbcType=TIMESTAMP},
+            #{item.updateTime,jdbcType=TIMESTAMP}
+            )
+        </foreach>
+    </insert>
+    <delete id="deleteOrderItemByOrderId">
+        DELETE FROM order_item WHERE order_id IN
+        <foreach item="orderId" collection="ids" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+    </delete>
+
+    <!-- <select id="getOrderItemByOrderId" resultType="com.bookserve.pojo.OrderItem">
+         SELECT oi.*, b.title FROM order_item oi JOIN book b ON oi.book_id = b.id WHERE oi.id = #{Id}
+     </select>-->
+    <select id="getOrderItemByOrderId" resultType="com.bookserve.pojo.OrderItem">
+        SELECT
+        oi.*,
+        b.title,
+        o.order_number AS orderNumber
+        FROM
+        order_item oi
+        JOIN
+        book b ON oi.book_id = b.id
+        JOIN
+        orders o ON oi.order_id = o.id  <!-- 假设通过 order_id 关联 order 表 -->
+        WHERE
+        oi.id = #{id}  <!-- 根据订单号查询 -->
+    </select>
+    <select id="selectByOrderId" resultType="com.bookserve.pojo.OrderItem">
+        SELECT
+            oi.*,
+            b.title,       -- 从 book 表获取书名
+            o.order_number AS orderNumber   -- 从 order 表获取订单号
+        FROM
+            order_item oi
+                JOIN
+            book b ON oi.book_id = b.id     -- 关联 book 表，通过 book_id 获取书名
+                JOIN
+            orders o ON oi.order_id = o.id -- 关联 order 表，通过 order_id 获取订单号
+        WHERE
+            oi.order_id = #{orderId}        -- 根据 order_id 查询对应的订单项
+    </select>
+</mapper>

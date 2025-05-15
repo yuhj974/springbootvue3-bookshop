@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookserve.mapper.CartMapper">
+
+    <update id="addQuantity">
+        UPDATE cart
+        SET
+            quantity = #{quantity}
+
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteCart">
+        delete from cart
+        <where>
+            <if test="ids != null and !ids.isEmpty()">
+                id in
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </delete>
+    <delete id="deleteByUserIdAndBookId">
+        DELETE FROM cart
+        WHERE user_id = #{userId}
+          AND book_id = #{bookId}
+    </delete>
+    <select id="getAllCart" resultType="com.bookserve.pojo.Cart">
+        SELECT
+        cart.*,
+        user.username,  <!-- 显式选择 user.username -->
+        book.title,
+        book.author,
+        book.cover_image,
+        book.price * cart.quantity AS totalPrice
+        FROM cart
+        LEFT JOIN book ON cart.book_id = book.id
+        LEFT JOIN user ON cart.user_id = user.id  <!-- 正确关联到 user.id -->
+        <where>
+            <if test="username != null and username != ''">
+                user.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="getCartByUserId" resultType="com.bookserve.pojo.Cart">
+
+        SELECT
+        cart.*,
+        book.title,
+        book.author,
+        book.cover_image,
+        book.price * cart.quantity AS totalPrice
+        FROM cart
+        LEFT JOIN book ON cart.book_id = book.id
+        WHERE cart.user_id = #{userId}
+    </select>
+
+
+</mapper>
