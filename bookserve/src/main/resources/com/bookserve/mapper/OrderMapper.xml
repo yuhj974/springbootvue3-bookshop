@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookserve.mapper.OrderMapper">
+    <insert id="addOrder" parameterType="com.bookserve.pojo.Order" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO orders (
+        user_id,
+        order_number,
+        total_amount,
+        status,
+        address_id,
+        <!-- 动态处理可能为空的字段 -->
+        <if test="paymentTime != null">payment_time,</if>
+        <if test="deliveryTime != null">delivery_time,</if>
+        <if test="receiveTime != null">receive_time,</if>
+        create_time,
+        update_time
+        ) VALUES (
+        #{userId,jdbcType=BIGINT},
+        #{orderNumber,jdbcType=VARCHAR},
+        #{totalAmount,jdbcType=DECIMAL},
+        #{status,jdbcType=INTEGER},
+        #{addressId,jdbcType=BIGINT},
+        <!-- 动态处理可能为空的字段 -->
+        <if test="paymentTime != null">#{paymentTime,jdbcType=TIMESTAMP},</if>
+        <if test="deliveryTime != null">#{deliveryTime,jdbcType=TIMESTAMP},</if>
+        <if test="receiveTime != null">#{receiveTime,jdbcType=TIMESTAMP},</if>
+        #{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    <update id="updateById">
+        UPDATE orders
+        SET status = #{status},
+            delivery_time = #{deliveryTime}
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteOrder">
+        DELETE FROM orders WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--<select id="getAllOrder" resultType="com.bookserve.pojo.Order">
+        SELECT
+        orders.*,
+        user.username AS username,
+        address.detail_address AS detailAddress
+        FROM orders
+        LEFT JOIN user ON orders.user_id = user.id
+        LEFT JOIN address ON orders.address_id = address.id
+        <where>
+            &lt;!&ndash; 地址模糊查询 &ndash;&gt;
+            <if test="detailAddress != null ">
+                address.detail_address LIKE CONCAT('%', #{detailAddress}, '%')
+            </if>
+
+            &lt;!&ndash; 支付时间模糊查询 &ndash;&gt;
+            <if test="paymentTime != null ">
+                AND DATE_FORMAT(payment_time, '%Y-%m-%d %H:%i:%s')
+                LIKE CONCAT('%', REPLACE(#{paymentTime}, 'T', ' '), '%')
+            </if>
+
+            &lt;!&ndash; 发货时间模糊查询 &ndash;&gt;
+            <if test="deliveryTime != null ">
+                AND DATE_FORMAT(delivery_time, '%Y-%m-%d %H:%i:%s')
+                LIKE CONCAT('%', REPLACE(#{deliveryTime}, 'T', ' '), '%')
+            </if>
+
+            &lt;!&ndash; 收货时间模糊查询 &ndash;&gt;
+            <if test="receiveTime != null">
+                AND DATE_FORMAT(receive_time, '%Y-%m-%d %H:%i:%s')
+                LIKE CONCAT('%', REPLACE(#{receiveTime}, 'T', ' '), '%')
+            </if>
+
+            &lt;!&ndash; 其他条件 &ndash;&gt;
+            <if test="status != null and status != ''">
+                AND orders.status = #{status}
+            </if>
+            <if test="username != null and username != ''">
+                AND user.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+        </where>
+        ORDER BY orders.create_time DESC
+
+    </select>-->
+
+
+    <select id="getAllOrder" resultType="com.bookserve.pojo.Order">
+        SELECT
+        orders.*,
+        user.username AS username,
+        user.phone,
+        address.detail_address AS detailAddress,
+        address.consignee AS consignee
+        FROM orders
+        LEFT JOIN user ON orders.user_id = user.id
+        LEFT JOIN address ON orders.address_id = address.id
+        <where>
+            <if test="detailAddress != null and detailAddress != ''">
+                address.detail_address LIKE CONCAT('%', #{detailAddress}, '%')
+            </if>
+
+            <!-- 支付时间模糊查询（保持原逻辑） -->
+            <if test="paymentTime != null and paymentTime != ''">
+                AND DATE_FORMAT(payment_time, '%Y-%m-%d %H:%i:%s')
+                LIKE CONCAT('%', #{paymentTime}, '%')
+            </if>
+
+            <!-- 发货时间模糊查询（保持原逻辑） -->
+            <if test="deliveryTime != null and deliveryTime != ''">
+                AND DATE_FORMAT(delivery_time, '%Y-%m-%d %H:%i:%s')
+                LIKE CONCAT('%', #{deliveryTime}, '%')
+            </if>
+
+            <!-- 收货时间模糊查询（保持原逻辑） -->
+            <if test="receiveTime != null and receiveTime != ''">
+                AND DATE_FORMAT(receive_time, '%Y-%m-%d %H:%i:%s')
+                LIKE CONCAT('%', #{receiveTime}, '%')
+            </if>
+
+            <!-- 状态查询 -->
+            <if test="status != null and status != ''">
+                AND orders.status = #{status}
+            </if>
+
+            <!-- 用户名模糊查询 -->
+            <if test="username != null and username != ''">
+                AND user.username LIKE CONCAT('%', #{username}, '%')
+            </if>
+        </where>
+        ORDER BY orders.create_time DESC
+    </select>
+    <select id="getOrderById">
+        select * from orders
+        where id = #{id}
+    </select>
+    <select id="getOrderByUserId" resultType="com.bookserve.pojo.Order">
+        SELECT
+            orders.*,
+            user.username AS username,
+            address.detail_address AS detailAddress,
+            address.consignee AS consignee,
+            address.phone AS phone
+        FROM orders
+                 LEFT JOIN user ON orders.user_id = user.id
+                 LEFT JOIN address ON orders.address_id = address.id
+        WHERE orders.user_id = #{userId}
+    </select>
+</mapper>
