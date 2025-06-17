@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookserve.mapper.CarouselMapper">
+    <sql id="baseColumn">
+        id, image_url, book_id, title, sort, status, create_time, update_time
+    </sql>
+
+    <!-- 批量删除 -->
+    <delete id="deleteByIds">
+        DELETE FROM carousel
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!-- 分页查询（配合PageHelper） -->
+    <select id="selectCarousels" resultType="com.bookserve.pojo.Carousel" parameterType="map">
+        select c.*, b.title as booktitle
+        from carousel c left join book b on c.book_id = b.id
+        <where>
+            <if test="title != null and title != ''">
+                AND c.title LIKE concat('%', #{title}, '%')
+            </if>
+            <if test="status != null">
+                AND c.status = #{status}
+            </if>
+        </where>
+        ORDER BY c.sort ASC
+    </select>
+
+</mapper>

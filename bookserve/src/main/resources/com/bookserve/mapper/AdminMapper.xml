@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookserve.mapper.AdminMapper">
+    <insert id="addAdmin">
+        INSERT INTO admin(username, password, role, avatar, name)
+        VALUES (#{username}, #{password}, #{role}, #{avatar}, #{name})
+    </insert>
+    <update id="updateAdmin">
+        UPDATE admin
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <!-- 修改条件：只要password不为null就更新（Java层已处理加密/保留原密码逻辑） -->
+            <if test="password != null">password = #{password},</if>
+            <if test="role != null">role = #{role},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="name != null">name = #{name},</if>
+            update_time = #{updateTime}  <!-- 确保更新时间始终被设置 -->
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteAdmin">
+        DELETE FROM admin WHERE id=#{id}
+    </delete>
+
+
+    <select id="getAllAdmin" resultType="com.bookserve.pojo.Admin">
+        select * from admin
+        <where>
+            <if test="username!=null and username!=''">
+                and username like concat('%',#{username},'%')
+            </if>
+        </where>
+    </select>
+    <select id="getAdminById" resultType="com.bookserve.pojo.Admin">
+        select * from admin where id=#{id}
+    </select>
+    <select id="login" resultType="com.bookserve.pojo.Admin">
+        select id, username, password, role, name, avatar from admin where username=#{username} and password=#{password}
+    </select>
+    <select id="selectByUsername" resultType="com.bookserve.pojo.Admin">
+        select * from admin where username=#{username}
+    </select>
+    <select id="findByUsername" resultType="com.bookserve.pojo.Admin">
+        select * from admin where username=#{username}
+    </select>
+    <select id="findByAdminname" resultType="com.bookserve.pojo.Admin">
+        select * from admin where username=#{username}
+    </select>
+</mapper>

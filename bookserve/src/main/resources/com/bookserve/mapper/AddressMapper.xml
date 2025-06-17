@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookserve.mapper.AddressMapper">
+    <insert id="addAddress">
+        insert into address(user_id,consignee,phone,detail_address,is_default,create_time,update_time)
+        values(#{userId},#{consignee},#{phone},#{detailAddress},#{isDefault},#{createTime},#{updateTime})
+    </insert>
+    <update id="updateById">
+        UPDATE address
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="consignee != null">consignee = #{consignee},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="detailAddress != null">detail_address = #{detailAddress},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteAddress">
+        delete from address where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <select id="getAllAddress" resultType="com.bookserve.pojo.Address">
+        select address.*, user.username from address
+        left join user on address.user_id = user.id
+        <where>
+            <if test="username!=null and username!=''">
+                and user.username like concat('%',#{username},'%')
+            </if>
+            <if test="consignee!=null and consignee!=''">
+                and address.consignee like concat('%',#{consignee},'%')
+            </if>
+            <if test="phone!=null and phone!=''">
+        </if>
+        </where>
+    </select>
+    <select id="getAddressByUserId" resultType="com.bookserve.pojo.Address">
+        select address.*,user.username from address
+        left join user on address.user_id=user.id
+        where address.user_id=#{userId}
+    </select>
+    <select id="getAddressById" resultType="com.bookserve.pojo.Address">
+        select * from address where id=#{id}
+    </select>
+    <select id="findDefaultByUserId" resultType="com.bookserve.pojo.Address">
+        select * from address where user_id=#{userId} and is_default=1
+    </select>
+    <select id="findByIdAndUserId" resultType="com.bookserve.pojo.Address">
+        select * from address where id=#{id} and user_id=#{userId}
+    </select>
+</mapper>
